@@ -1,64 +1,161 @@
 # Expense Splitter
 
-Full-stack Expense Splitter app with Spring Boot backend and React + Vite frontend.
+Expense Splitter is a full-stack web application for tracking shared expenses, managing groups, and settling balances between users.
 
-## Quick start
+The project uses:
+- Backend: Spring Boot, Spring Data JPA, Spring Security, JWT authentication, H2/MySQL database
+- Frontend: React, TypeScript, Vite, Tailwind CSS, Axios, Recharts, Framer Motion
+
+## Project overview
+
+The app helps users:
+- sign up and log in securely with email/password
+- create groups and add group members
+- add expenses and split costs across users
+- view expense history and transaction details
+- see balance summaries and debt settlement status
+- generate basic reports for spending and balances
+
+## Architecture
+
+- `backend/` contains the Spring Boot REST API.
+  - Data layer: JPA entities, repositories, and a relational database.
+  - Security: JWT token authentication with Spring Security.
+  - Business logic: services for users, groups, expenses, transactions, and balances.
+  - Controllers: REST endpoints for authentication, users, groups, expenses, transactions, and balances.
+
+- `frontend/` contains the React single-page application.
+  - Routing: React Router handles authenticated pages and public auth pages.
+  - UI: Tailwind CSS for styling, reusable components for forms, cards, modals, and navigation.
+  - API: Axios client connects to the backend and sends authorized requests.
+  - Charts: Recharts visualizes spending and balance data.
+
+## Features
+
+- User registration and login
+- JWT-based auth with protected backend routes
+- Group creation and member management
+- Expense creation with split details
+- Transaction history and detailed expense view
+- Balance summaries and debt insights
+- Frontend pages for Dashboard, Groups, Expenses, Balances, Transactions, Reports, Login, Signup
+
+## Setup
+
+### Prerequisites
+
+- Node.js and npm
+- Java 17
+- Maven
+- Optional: MySQL if you want to use a persistent external database
+
+### Install dependencies
 
 From the project root:
 
 ```bash
 npm install
+```
+
+Then install frontend dependencies:
+
+```bash
+cd frontend
+npm install
+```
+
+## Run the app
+
+From the project root, start backend and frontend together:
+
+```bash
 npm start
 ```
 
-The app runs:
+Alternatively, start services individually:
+
+```bash
+npm run start:backend
+npm run start:frontend
+```
+
+The app runs on:
 - Backend: http://localhost:8080
 - Frontend: http://localhost:5173
 
-## MySQL configuration
+## Database configuration
 
-The backend now uses MySQL. Create a database named `expenses` and set your MySQL credentials with environment variables if needed.
+By default, the backend uses an H2 database stored in `backend/data/expensesdb`.
 
-Example:
+If you want to use MySQL instead, configure these environment variables before running the backend:
 
 ```bash
 set MYSQL_URL=jdbc:mysql://localhost:3306/expenses?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
 set MYSQL_USER=root
 set MYSQL_PASSWORD=your-password
-npm start
 ```
 
-If you don’t set an environment variable, the defaults are:
-- `MYSQL_URL=jdbc:mysql://localhost:3306/expenses?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC`
-- `MYSQL_USER=root`
-- `MYSQL_PASSWORD=password`
+If no environment variables are set, the app will continue using the embedded H2 database.
 
-To start both services from the project root:
+## Authentication
 
-```bash
-npm start
-```
+The app supports signup and login.
 
-To start only one service:
-
-```bash
-npm run backend
-npm run frontend
-```
-
-If you only need the frontend and the backend is already running, use `npm run frontend`.
-
-## Auth and seed data
-
-The app now shows a login/signup screen first. Username and password are required for signup and login.
-
-You can sign up with any name, email, and password, or use seeded sample accounts from the backend data seed:
+Seeded sample accounts are available for testing:
 
 - `alice@example.com` / `password123`
 - `ben@example.com` / `password123`
 - `clara@example.com` / `password123`
 
-## Structure
+## Folder structure
 
-- `backend/` - Spring Boot API with Hibernate JPA, H2 database, sample data, and REST endpoints.
-- `frontend/` - React + Vite app with Tailwind, TypeScript, Axios, charts, and animations.
+- `backend/`
+  - `src/main/java/com/example/expensesplitter/`
+    - `config/` - application configuration and data seeding
+    - `controller/` - REST API controllers
+    - `dto/` - request and response DTOs
+    - `entity/` - JPA entity classes
+    - `exception/` - custom exception handling
+    - `model/` - domain models and security payloads
+    - `repository/` - Spring Data JPA repositories
+    - `security/` - authentication and JWT configuration
+    - `service/` - service layer business logic
+  - `src/main/resources/` - application properties, SQL seed data
+
+- `frontend/`
+  - `src/` - React app source code
+  - `src/components/` - reusable UI components
+  - `src/lib/` - API client, auth utilities, shared types
+  - `src/pages/` - routed views and page screens
+
+## Screenshots
+
+### Login
+
+![Login screen](screenshots/login.png)
+
+### Signup
+
+![Signup screen](screenshots/signup.png)
+
+### Dashboard
+
+![Dashboard overview](screenshots/dashboard.png)
+
+### Groups and member management
+
+![Groups page](screenshots/groups.png)
+
+### Balances
+
+![Balances page](screenshots/balances.png)
+
+## Notes
+
+- Frontend and backend are decoupled, so the frontend can be deployed independently once the API base URL is configured.
+- The backend supports secure JWT authorization for protected routes.
+- The current default setup is ready to run locally with minimal configuration.
+
+## License
+
+This repository is provided as-is for learning and development purposes.
