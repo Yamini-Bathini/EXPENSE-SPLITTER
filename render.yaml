@@ -10,7 +10,6 @@ services:
     runtime: docker
     plan: free
     rootDir: ./backend
-    dockerfilePath: ./backend/Dockerfile
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: render
