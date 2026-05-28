@@ -1,1 +1,7 @@
 node_modules
+backend/target/
+frontend/dist/
+backend/data/
+*.log
+*.txt
+.vscode/
