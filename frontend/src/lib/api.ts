@@ -1,9 +1,7 @@
 import axios from 'axios';
 
-// Default to Render backend for production. For local development, create a .env file with:
-//   VITE_API_URL=/api
-// which will use the Vite dev proxy to forward to localhost:8080
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://expense-splitter-backend-yqdk.onrender.com';
+// Note: For local development, change this to '/api' to use the Vite dev proxy
+const API_BASE_URL = 'https://expense-splitter-backend-yqdk.onrender.com';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
