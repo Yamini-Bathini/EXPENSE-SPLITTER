@@ -5,7 +5,7 @@ const API_BASE_URL = 'https://expense-splitter-backend-yqdk.onrender.com';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 60000, // 60s — Render free tier cold start can take 30-60s
 });
 
 api.interceptors.request.use((config) => {
