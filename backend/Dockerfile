@@ -8,8 +8,8 @@ RUN mvn package -DskipTests -B
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
+# Render sets SPRING_PROFILES_ACTIVE=render via render.yaml
+# Railway sets SPRING_PROFILES_ACTIVE=production via env vars
 EXPOSE 8080
-
-ENV SPRING_PROFILES_ACTIVE=production
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -1,0 +1,30 @@
+databases:
+  - name: expense-splitter-db
+    plan: free
+    databaseName: expense_splitter
+    user: expense_user
+
+services:
+  - type: web
+    name: expense-splitter-backend
+    runtime: docker
+    plan: free
+    rootDir: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: render
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: expense-splitter-db
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: expense-splitter-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: expense-splitter-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
