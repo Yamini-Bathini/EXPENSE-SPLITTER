@@ -13,15 +13,15 @@ services:
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: render
-      - key: SPRING_DATASOURCE_URL
+      - key: RENDER_DATASOURCE_URL
         fromDatabase:
           name: expense-splitter-db
           property: connectionString
-      - key: SPRING_DATASOURCE_USERNAME
+      - key: RENDER_DATASOURCE_USERNAME
         fromDatabase:
           name: expense-splitter-db
           property: user
-      - key: SPRING_DATASOURCE_PASSWORD
+      - key: RENDER_DATASOURCE_PASSWORD
         fromDatabase:
           name: expense-splitter-db
           property: password
