@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Note: For local development, change this to '/api' to use the Vite dev proxy
-const API_BASE_URL = 'https://expense-splitter-backend-yqdk.onrender.com';
+const API_BASE_URL = 'https://expense-splitter-backend-yqdk.onrender.com/api';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
