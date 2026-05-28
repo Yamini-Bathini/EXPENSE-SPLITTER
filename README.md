@@ -2,6 +2,8 @@
 
 Expense Splitter is a full-stack web application for tracking shared expenses, managing groups, and settling balances between users.
 
+Live demo: https://expenseapp-five.vercel.app/
+
 The project uses:
 - Backend: Spring Boot, Spring Data JPA, Spring Security, JWT authentication, H2/MySQL database
 - Frontend: React, TypeScript, Vite, Tailwind CSS, Axios, Recharts, Framer Motion
