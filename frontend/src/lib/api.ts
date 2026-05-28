@@ -1,8 +1,9 @@
 import axios from 'axios';
 
-// In production (Vercel), set VITE_API_URL to the Railway backend URL (e.g. https://your-app.up.railway.app)
-// In development, it falls back to '/api' which uses the Vite dev proxy
-const API_BASE_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) || '/api';
+// Default to Render backend for production. For local development, create a .env file with:
+//   VITE_API_URL=/api
+// which will use the Vite dev proxy to forward to localhost:8080
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://expense-splitter-backend-yqdk.onrender.com';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
