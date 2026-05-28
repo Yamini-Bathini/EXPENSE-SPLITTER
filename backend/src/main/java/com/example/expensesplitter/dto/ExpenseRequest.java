@@ -11,6 +11,7 @@ public class ExpenseRequest {
     private String description;
     private String category;
     private BigDecimal amount;
+    private String currency;
     private Long groupId;
     private Long paidById;
     private SplitType splitType;

@@ -3,6 +3,7 @@ package com.example.expensesplitter.controller;
 import com.example.expensesplitter.entity.Transaction;
 import com.example.expensesplitter.service.TransactionService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -43,8 +44,8 @@ public class TransactionController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Transaction>> getAllTransactions() {
-        List<Transaction> transactions = transactionService.getAllTransactions();
+    public ResponseEntity<List<com.example.expensesplitter.dto.TransactionDto>> getUserTransactions(Authentication authentication) {
+        List<com.example.expensesplitter.dto.TransactionDto> transactions = transactionService.getUserTransactionDtos(authentication.getName());
         return ResponseEntity.ok(transactions);
     }
 

@@ -3,6 +3,7 @@ export interface User {
   username: string;
   email: string;
   token?: string;
+  phoneNumber?: string;
 }
 
 export interface Group {
@@ -23,11 +24,13 @@ export interface Expense {
   description: string;
   category: string;
   amount: number;
+  currency: string;
   splitType: 'EQUAL' | 'CUSTOM' | 'PERCENTAGE';
   paidById: number;
   paidByName: string;
   groupId: number;
   splits: Split[];
+  createdAt?: string;
 }
 
 export interface Transaction {
@@ -40,6 +43,13 @@ export interface Transaction {
   note: string;
   status: string;
   occurredAt: string;
+}
+
+
+export interface ReceiptExtraction {
+  originalFileName: string;
+  extractedText: string;
+  parsedTotal?: number;
 }
 
 export interface Balance {

@@ -2,21 +2,36 @@ import { Bell, LogOut, SunMoon, Moon } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { useToast } from '../ui/Toast';
+import { api } from '../../lib/api';
 
 export function Navbar() {
   const auth = useAuth();
   const navigate = useNavigate();
+  const { addToast } = useToast();
+  const [isSendingNotifications, setIsSendingNotifications] = useState(false);
 
   const handleLogout = () => {
     auth.logout();
     navigate('/login', { replace: true });
   };
 
+  const sendDebtReminders = async () => {
+    setIsSendingNotifications(true);
+    try {
+      await api.post('/notifications/reminders');
+      addToast({ type: 'success', title: 'Notifications sent', description: 'Email and SMS reminders for unsettled debts have been triggered.' });
+    } catch (err: any) {
+      addToast({ type: 'error', title: 'Reminder failed', description: err.response?.data?.message || err.message });
+    } finally {
+      setIsSendingNotifications(false);
+    }
+  };
+
   const [isDark, setIsDark] = useState(() => {
     return localStorage.getItem('theme') === 'dark' || 
            (!('theme' in localStorage) && globalThis.matchMedia('(prefers-color-scheme: dark)').matches);
   });
-
   useEffect(() => {
     if (isDark) {
       document.documentElement.classList.add('dark');
@@ -40,8 +55,13 @@ export function Navbar() {
           {isDark ? <Moon size={16} className="mr-2 inline-block text-indigo-400" /> : <SunMoon size={16} className="mr-2 inline-block text-teal-600" />} 
           Theme
         </button>
-        <button className="rounded-2xl border border-white/60 dark:border-slate-700/80 bg-white/50 dark:bg-slate-800/50 px-4 py-2 text-slate-700 dark:text-slate-200 transition-all hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm">
-          <Bell size={16} className="mr-2 inline-block text-indigo-500 dark:text-indigo-400" /> Notifications
+        <button
+          onClick={sendDebtReminders}
+          disabled={isSendingNotifications}
+          className="rounded-2xl border border-white/60 dark:border-slate-700/80 bg-white/50 dark:bg-slate-800/50 px-4 py-2 text-slate-700 dark:text-slate-200 transition-all hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm disabled:opacity-60"
+        >
+          <Bell size={16} className="mr-2 inline-block text-indigo-500 dark:text-indigo-400" />
+          {isSendingNotifications ? 'Sending...' : 'Send reminders'}
         </button>
         <button onClick={handleLogout} className="rounded-2xl pastel-button px-4 py-2 transition-all">
           <LogOut size={16} className="mr-2 inline-block text-rose-500" /> Logout

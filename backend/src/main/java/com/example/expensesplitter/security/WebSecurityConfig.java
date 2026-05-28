@@ -31,6 +31,7 @@ public class WebSecurityConfig {
         return new AuthTokenFilter(jwtUtils, userDetailsService);
     }
 
+    @SuppressWarnings("deprecation")
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();

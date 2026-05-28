@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class ExpenseService {
@@ -30,42 +31,66 @@ public class ExpenseService {
         this.userRepository = userRepository;
     }
 
+    private static final String USER_NOT_FOUND = "User not found";
+
     @SuppressWarnings("java:S2259")
     public Expense addExpense(ExpenseRequest request) {
-        Group group = groupRepository.findById(request.getGroupId())
+        Long groupId = Objects.requireNonNull(request.getGroupId(), "Group id is required");
+        Long paidById = Objects.requireNonNull(request.getPaidById(), "Paid by user id is required");
+
+        Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new IllegalArgumentException("Group not found"));
 
-        User paidBy = userRepository.findById(request.getPaidById())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        User paidBy = userRepository.findById(paidById)
+                .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
 
         Expense expense = Expense.builder()
                 .description(request.getDescription())
                 .category(request.getCategory())
                 .amount(request.getAmount())
+                .currency(request.getCurrency() != null ? request.getCurrency() : "USD")
                 .group(group)
                 .paidBy(paidBy)
                 .splitType(request.getSplitType())
                 .splits(new ArrayList<>())
                 .build();
 
-        for (ExpenseSplitRequest splitReq : request.getSplits()) {
-            User user = userRepository.findById(splitReq.getUserId())
-                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-            Split split = Split.builder()
-                    .expense(expense)
-                    .user(user)
-                    .amount(splitReq.getAmount())
-                    .build();
-
-            expense.getSplits().add(split);
+        java.math.BigDecimal equalSplitAmount = java.math.BigDecimal.ZERO;
+        if (request.getSplits() != null && !request.getSplits().isEmpty()) {
+            equalSplitAmount = request.getAmount().divide(java.math.BigDecimal.valueOf(request.getSplits().size()), 2, java.math.RoundingMode.HALF_UP);
         }
 
-        return expenseRepository.save(expense);
+        if (request.getSplits() != null) {
+            for (ExpenseSplitRequest splitReq : request.getSplits()) {
+                Long splitUserId = Objects.requireNonNull(splitReq.getUserId(), "Split user id is required");
+                User user = userRepository.findById(splitUserId)
+                        .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
+
+                java.math.BigDecimal splitAmount = request.getSplitType() == com.example.expensesplitter.model.SplitType.EQUAL
+                                         ? equalSplitAmount
+                                         : splitReq.getAmount();
+
+                Split split = Split.builder()
+                        .expense(expense)
+                        .user(user)
+                        .amount(splitAmount)
+                        .build();
+
+                expense.getSplits().add(split);
+            }
+        }
+
+        return expenseRepository.save(Objects.requireNonNull(expense));
     }
 
-    public List<Expense> getAllExpenses() {
-        return expenseRepository.findAll();
+    public Expense saveExpense(Expense expense) {
+        return expenseRepository.save(Objects.requireNonNull(expense));
+    }
+
+    public List<Expense> getUserExpenses(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
+        return expenseRepository.findExpensesForUser(user.getId());
     }
 
     public List<Expense> getGroupExpenses(Long groupId) {
@@ -77,8 +102,8 @@ public class ExpenseService {
                 .map(split -> new SplitDto(split.getUser().getId(), split.getUser().getUsername(), split.getAmount()))
                 .toList();
         return new ExpenseDto(expense.getId(), expense.getDescription(), expense.getCategory(),
-                             expense.getAmount(), expense.getSplitType(), expense.getPaidBy().getId(),
-                             expense.getPaidBy().getUsername(), expense.getGroup().getId(), splitDtos);
+                             expense.getAmount(), expense.getCurrency(), expense.getSplitType(), expense.getPaidBy().getId(),
+                             expense.getPaidBy().getUsername(), expense.getGroup().getId(), splitDtos, expense.getCreatedAt());
     }
 
     public ExpenseDto addExpenseDto(ExpenseRequest request) {
@@ -87,8 +112,8 @@ public class ExpenseService {
     }
 
     @Transactional(readOnly = true)
-    public List<ExpenseDto> getAllExpenseDtos() {
-        List<Expense> expenses = getAllExpenses();
+    public List<ExpenseDto> getUserExpenseDtos(String username) {
+        List<Expense> expenses = getUserExpenses(username);
         return expenses.stream().map(this::convertToDto).toList();
     }
 

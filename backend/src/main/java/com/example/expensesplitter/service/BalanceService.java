@@ -12,6 +12,7 @@ import com.example.expensesplitter.repository.TransactionRepository;
 import com.example.expensesplitter.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -25,9 +26,13 @@ public class BalanceService {
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
 
-    public BalanceSummaryDto getBalanceSummary() {
-        List<Expense> expenses = expenseRepository.findAll();
-        List<Transaction> transactions = transactionRepository.findAll();
+    @Transactional(readOnly = true)
+    public BalanceSummaryDto getBalanceSummary(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        List<Expense> expenses = expenseRepository.findExpensesForUser(user.getId());
+        List<Transaction> transactions = transactionRepository.findTransactionsForUserGroups(user.getId());
 
         Map<Long, BigDecimal> netPosition = new HashMap<>();
 
@@ -49,7 +54,16 @@ public class BalanceService {
 
         List<BalanceDto> balances = buildBalances(new HashMap<>(netPosition));
         List<TransactionDto> suggested = suggestSettlements(new HashMap<>(netPosition));
-        return new BalanceSummaryDto(balances, suggested);
+
+        List<BalanceDto> filteredBalances = balances.stream()
+                .filter(b -> Objects.equals(b.getFromUserId(), user.getId()) || Objects.equals(b.getToUserId(), user.getId()))
+                .collect(Collectors.toList());
+
+        List<TransactionDto> filteredSuggested = suggested.stream()
+                .filter(s -> Objects.equals(s.getFromUserId(), user.getId()) || Objects.equals(s.getToUserId(), user.getId()))
+                .collect(Collectors.toList());
+
+        return new BalanceSummaryDto(filteredBalances, filteredSuggested);
     }
 
     @SuppressWarnings("java:S2259")

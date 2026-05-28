@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell } from 'recharts';
 import { api } from '../lib/api';
 import type { BalanceSummary, Transaction } from '../lib/types';
@@ -6,8 +7,9 @@ import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, Users, CreditCard, DollarSign, Target, Bell, Plus, Activity, PieChart as PieChartIcon } from 'lucide-react';
+import { useAuth } from '../lib/auth';
 
-const categoryColors = {
+const categoryColors: Record<string, string> = {
   'Food & Dining': '#FF6B6B',
   'Transportation': '#4ECDC4',
   'Entertainment': '#45B7D1',
@@ -18,6 +20,8 @@ const categoryColors = {
 };
 
 function DashboardPage() {
+  const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
   const [summary, setSummary] = useState<BalanceSummary | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [expenses, setExpenses] = useState<any[]>([]);
@@ -41,11 +45,15 @@ function DashboardPage() {
   }, []);
 
   const totals = useMemo(() => {
-    if (!summary) return { youOwe: 0, youAreOwed: 0, netBalance: 0 };
-    const youOwe = summary.balances.reduce((sum, item) => sum + Number(item.amount), 0);
-    const youAreOwed = summary.suggestedSettlements.reduce((sum, item) => sum + Number(item.amount), 0);
+    if (!summary || !currentUser) return { youOwe: 0, youAreOwed: 0, netBalance: 0 };
+    const youOwe = summary.suggestedSettlements
+      .filter(item => item.fromUserId === currentUser.id)
+      .reduce((sum, item) => sum + Number(item.amount), 0);
+    const youAreOwed = summary.suggestedSettlements
+      .filter(item => item.toUserId === currentUser.id)
+      .reduce((sum, item) => sum + Number(item.amount), 0);
     return { youOwe, youAreOwed, netBalance: youAreOwed - youOwe };
-  }, [summary]);
+  }, [summary, currentUser]);
 
   const chartData = useMemo(() => {
     const monthMap = new Map<string, number>();
@@ -58,27 +66,27 @@ function DashboardPage() {
 
   const categoryBreakdown = useMemo(() => {
     const categoryMap = new Map<string, number>();
-    expenses.forEach((expense) => {
+    expenses.forEach((expense: any) => {
       const category = expense.category || 'Other';
       categoryMap.set(category, (categoryMap.get(category) ?? 0) + Number(expense.amount));
     });
     return Array.from(categoryMap.entries()).map(([category, amount]) => ({
       category,
       amount,
-      color: categoryColors[category as keyof typeof categoryColors] || categoryColors.Other
+      color: categoryColors[category] || categoryColors.Other
     }));
   }, [expenses]);
 
   const recentActivity = useMemo(() => {
     const combined = [
-      ...transactions.slice(0, 3).map(tx => ({ ...tx, type: 'transaction' })),
-      ...expenses.slice(0, 2).map(exp => ({ ...exp, type: 'expense', occurredAt: exp.createdAt }))
+      ...transactions.slice(0, 3).map(tx => ({ ...tx, type: 'transaction' as const, occurredAt: tx.occurredAt })),
+      ...expenses.slice(0, 2).map((exp: any) => ({ ...exp, type: 'expense' as const, occurredAt: exp.createdAt || new Date().toISOString() }))
     ].sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime());
 
     return combined.map(item => ({
       id: item.id,
       type: item.type,
-      description: item.note || item.title || 'Transaction',
+      description: item.note || item.description || 'Transaction',
       amount: Number(item.amount),
       date: new Date(item.occurredAt).toLocaleDateString(),
       groupName: item.group?.name
@@ -116,6 +124,7 @@ function DashboardPage() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/expenses')}
             className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
           >
             <Plus size={18} />
@@ -124,10 +133,11 @@ function DashboardPage() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/balances')}
             className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:shadow-md transition-all"
           >
             <Bell size={18} />
-            Notifications
+            View Balances
           </motion.button>
         </div>
       </div>
@@ -177,7 +187,7 @@ function DashboardPage() {
               <div>
                 <p className="text-sm font-medium text-red-600 dark:text-red-400">Total Expenses</p>
                 <p className="text-2xl font-bold text-red-700 dark:text-red-300">
-                  ${expenses.reduce((sum, exp) => sum + Number(exp.amount), 0).toFixed(2)}
+                  ${expenses.reduce((sum: number, exp: any) => sum + Number(exp.amount), 0).toFixed(2)}
                 </p>
               </div>
               <div className="h-12 w-12 bg-red-500/10 rounded-full flex items-center justify-center">
@@ -186,7 +196,7 @@ function DashboardPage() {
             </div>
             <div className="mt-4 flex items-center text-sm">
               <Activity className="h-4 w-4 text-red-500 mr-1" />
-              <span className="text-red-600 dark:text-red-400">{expenses.length} expenses this month</span>
+              <span className="text-red-600 dark:text-red-400">{expenses.length} expenses total</span>
             </div>
           </Card>
         </motion.div>
@@ -234,7 +244,7 @@ function DashboardPage() {
             </div>
             <div className="mt-4 flex items-center text-sm">
               <TrendingUp className="h-4 w-4 text-purple-500 mr-1" />
-              <span className="text-purple-600 dark:text-purple-400">{summary?.balances.length || 0} pending settlements</span>
+              <span className="text-purple-600 dark:text-purple-400">{summary?.suggestedSettlements.length || 0} pending settlements</span>
             </div>
           </Card>
         </motion.div>
@@ -253,34 +263,40 @@ function DashboardPage() {
               <Activity className="h-5 w-5" />
               Monthly Spending Trend
             </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                <XAxis dataKey="month" className="text-xs" />
-                <YAxis className="text-xs" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    border: 'none',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="amount"
-                  stroke="#3B82F6"
-                  fill="url(#colorGradient)"
-                  strokeWidth={2}
-                />
-                <defs>
-                  <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-              </AreaChart>
-            </ResponsiveContainer>
+            {chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                  <XAxis dataKey="month" className="text-xs" />
+                  <YAxis className="text-xs" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      border: 'none',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="amount"
+                    stroke="#3B82F6"
+                    fill="url(#colorGradient)"
+                    strokeWidth={2}
+                  />
+                  <defs>
+                    <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-gray-500 dark:text-gray-400">
+                No transaction data available
+              </div>
+            )}
           </Card>
         </motion.div>
 
@@ -323,7 +339,7 @@ function DashboardPage() {
                     />
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="flex flex-wrap gap-2 mt-4">
+                <div className="flex flex-wrap gap-3 mt-4">
                   {categoryBreakdown.slice(0, 4).map((category) => (
                     <div key={category.category} className="flex items-center gap-2">
                       <div
@@ -358,7 +374,7 @@ function DashboardPage() {
           <div className="space-y-4">
             {recentActivity.map((activity, index) => (
               <motion.div
-                key={activity.id}
+                key={`${activity.type}-${activity.id}-${index}`}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.8 + index * 0.1 }}

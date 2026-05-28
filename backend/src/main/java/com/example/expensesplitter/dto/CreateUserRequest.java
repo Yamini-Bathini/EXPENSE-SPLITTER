@@ -13,6 +13,8 @@ public class CreateUserRequest {
     @Email
     private String email;
 
+    private String phoneNumber;
+
     @NotBlank
     private String password;
 }

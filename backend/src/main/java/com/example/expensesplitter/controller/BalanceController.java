@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -17,7 +18,7 @@ public class BalanceController {
     private final BalanceService balanceService;
 
     @GetMapping
-    public BalanceSummaryDto getBalanceSummary() {
-        return balanceService.getBalanceSummary();
+    public BalanceSummaryDto getBalanceSummary(Authentication authentication) {
+        return balanceService.getBalanceSummary(authentication.getName());
     }
 }

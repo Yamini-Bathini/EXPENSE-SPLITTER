@@ -97,6 +97,44 @@ set MYSQL_PASSWORD=your-password
 
 If no environment variables are set, the app will continue using the embedded H2 database.
 
+## Twilio SMS setup
+
+To enable real SMS reminders, configure Twilio credentials for the backend before starting the server:
+
+```bash
+set TWILIO_ACCOUNT_SID=your_account_sid
+set TWILIO_AUTH_TOKEN=your_auth_token
+set TWILIO_FROM_PHONE_NUMBER=+1234567890
+```
+
+The backend reads these values from `application.properties` as:
+
+```properties
+twilio.account-sid=${TWILIO_ACCOUNT_SID:}
+twilio.auth-token=${TWILIO_AUTH_TOKEN:}
+twilio.from-phone-number=${TWILIO_FROM_PHONE_NUMBER:}
+```
+
+When configured, the notification service sends real SMS reminders through Twilio instead of only logging them.
+
+### Live SMS test endpoint
+
+After starting the backend with Twilio environment variables set, you can verify live SMS by calling:
+
+```bash
+curl -X POST http://localhost:8080/api/notifications/test-sms \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
+  -d '{"phoneNumber":"+1234567890","message":"This is a live test SMS from Expense Splitter."}'
+```
+
+If you want to test the reminder workflow instead, call:
+
+```bash
+curl -X POST http://localhost:8080/api/notifications/reminders \
+  -H "Authorization: Bearer <JWT_TOKEN>"
+```
+
 ## Authentication
 
 The app supports signup and login.

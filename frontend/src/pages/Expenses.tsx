@@ -21,6 +21,7 @@ function ExpensesPage() {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [amount, setAmount] = useState('');
+  const [currency, setCurrency] = useState('USD');
   const [paidById, setPaidById] = useState<number | undefined>(undefined);
   const [groupId, setGroupId] = useState<number | undefined>(undefined);
   const [splitType, setSplitType] = useState<'EQUAL' | 'CUSTOM' | 'PERCENTAGE'>('EQUAL');
@@ -85,12 +86,8 @@ function ExpensesPage() {
     }
   };
 
-  const getButtonValue = (option: 'EQUAL' | 'EXACT' | 'PERCENTAGE'): 'EQUAL' | 'CUSTOM' | 'PERCENTAGE' =>
-    option === 'EXACT' ? 'CUSTOM' : option;
-
-  const getButtonClass = (option: 'EQUAL' | 'EXACT' | 'PERCENTAGE') => {
-    const buttonValue = getButtonValue(option);
-    return splitType === buttonValue ? 'border-teal-300 bg-teal-300 dark:bg-teal-600 text-slate-800 dark:text-slate-100 shadow-sm shadow-teal-100 dark:shadow-teal-900/50' : 'border-white/50 dark:border-slate-700/80 bg-white/60 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 hover:bg-white/70 dark:hover:bg-slate-700';
+  const getButtonClass = (option: 'EQUAL' | 'CUSTOM' | 'PERCENTAGE') => {
+    return splitType === option ? 'border-teal-300 bg-teal-300 dark:bg-teal-600 text-slate-800 dark:text-slate-100 shadow-sm shadow-teal-100 dark:shadow-teal-900/50' : 'border-white/50 dark:border-slate-700/80 bg-white/60 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 hover:bg-white/70 dark:hover:bg-slate-700';
   };
 
   const createExpense = async () => {
@@ -105,6 +102,7 @@ function ExpensesPage() {
         description,
         category,
         amount: Number(amount),
+        currency,
         paidById,
         groupId,
         splitType,
@@ -121,6 +119,7 @@ function ExpensesPage() {
       setDescription('');
       setCategory('');
       setAmount('');
+      setCurrency('USD');
       setSplits({});
       addToast({
         type: 'success',
@@ -138,6 +137,15 @@ function ExpensesPage() {
       setCreating(false);
     }
   };
+
+  const sortedExpenses = useMemo(() =>
+    [...expenses].sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA; // newest first
+    }),
+    [expenses]
+  );
 
   const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
   const myTotalOwed = expenses.reduce((sum, exp) => {
@@ -255,7 +263,7 @@ function ExpensesPage() {
                 <p className="text-sm">Create your first expense to get started</p>
               </div>
             ) : (
-              expenses.map((expense, index) => {
+              sortedExpenses.map((expense, index) => {
                 const mySplit = expense.splits.find(s => s.userId === currentUser?.id);
                 const amountOwed = mySplit ? mySplit.amount : 0;
                 const canSettle = amountOwed > 0 && expense.paidById !== currentUser?.id;
@@ -283,7 +291,7 @@ function ExpensesPage() {
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                      <p className="text-lg font-semibold text-gray-900 dark:text-white">${expense.amount.toFixed(2)}</p>
+                      <p className="text-lg font-semibold text-gray-900 dark:text-white">{expense.currency} ${expense.amount.toFixed(2)}</p>
                       {canSettle && (
                         <Button
                           size="sm"
@@ -338,6 +346,26 @@ function ExpensesPage() {
             />
           </div>
 
+          <div>
+            <label htmlFor="expense-currency" className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">Currency</label>
+            <select
+              id="expense-currency"
+              className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              value={currency}
+              onChange={(event) => setCurrency(event.target.value)}
+            >
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="GBP">GBP (£)</option>
+              <option value="JPY">JPY (¥)</option>
+              <option value="CAD">CAD (C$)</option>
+              <option value="AUD">AUD (A$)</option>
+              <option value="CHF">CHF (Fr)</option>
+              <option value="CNY">CNY (¥)</option>
+              <option value="INR">INR (₹)</option>
+            </select>
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label htmlFor="expense-group" className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">Group</label>
@@ -372,16 +400,16 @@ function ExpensesPage() {
           <div>
             <p className="mb-3 block text-sm font-medium text-slate-700 dark:text-slate-300">Split type</p>
             <div className="flex flex-wrap gap-2">
-              {(['EQUAL', 'EXACT', 'PERCENTAGE'] as const).map((option) => (
+              {(['EQUAL', 'CUSTOM', 'PERCENTAGE'] as const).map((option) => (
                 <motion.button
                   key={option}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   type="button"
-                  onClick={() => setSplitType(getButtonValue(option))}
+                  onClick={() => setSplitType(option)}
                   className={`rounded-xl border px-4 py-2 text-sm font-medium transition-all ${getButtonClass(option)}`}
                 >
-                  {option}
+                  {option === 'EQUAL' ? 'Equal' : option === 'CUSTOM' ? 'Custom' : 'Percentage'}
                 </motion.button>
               ))}
             </div>

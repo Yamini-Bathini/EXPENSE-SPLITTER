@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Service
@@ -33,8 +34,14 @@ public class GroupService {
         members.add(creator);
 
         if (request.getMemberIds() != null) {
-            for (Long id : request.getMemberIds()) {
-                userRepository.findById(id).ifPresent(members::add);
+            for (Long memberId : request.getMemberIds()) {
+                if (memberId == null) {
+                    continue;
+                }
+                Objects.requireNonNull(memberId);
+                if (!memberId.equals(creator.getId())) {
+                    userRepository.findById(memberId).ifPresent(members::add);
+                }
             }
         }
 
@@ -45,7 +52,7 @@ public class GroupService {
                 .members(members)
                 .build();
 
-        return groupRepository.save(group);
+        return groupRepository.save(Objects.requireNonNull(group));
     }
 
     public List<Group> getUserGroups(String username) {
@@ -74,7 +81,11 @@ public class GroupService {
 
         if (request.getMemberIds() != null) {
             for (Long memberId : request.getMemberIds()) {
-                if (memberId != null) {
+                if (memberId == null) {
+                    continue;
+                }
+                Objects.requireNonNull(memberId);
+                if (!memberId.equals(group.getCreatedBy().getId())) {
                     userRepository.findById(memberId).ifPresent(members::add);
                 }
             }
@@ -82,7 +93,7 @@ public class GroupService {
 
         group.setMembers(members);
 
-        return groupRepository.save(group);
+        return groupRepository.save(Objects.requireNonNull(group));
     }
 
     public void deleteGroup(Long id, String username) {
@@ -98,17 +109,23 @@ public class GroupService {
     @SuppressWarnings("java:S2259")
     public Group addMembers(Long groupId, Set<Long> memberIds) {
         Group group = getGroupById(groupId);
-        for (Long id : memberIds) {
-            if (id != null) {
-                userRepository.findById(id).ifPresent(group.getMembers()::add);
+        if (memberIds != null) {
+            for (Long memberId : memberIds) {
+                if (memberId == null) {
+                    continue;
+                }
+                Objects.requireNonNull(memberId);
+                if (!memberId.equals(group.getCreatedBy().getId())) {
+                    userRepository.findById(memberId).ifPresent(group.getMembers()::add);
+                }
             }
         }
-        return groupRepository.save(group);
+        return groupRepository.save(Objects.requireNonNull(group));
     }
 
     private GroupDto convertToDto(Group group) {
         List<UserDto> memberDtos = group.getMembers().stream()
-                .map(user -> new UserDto(user.getId(), user.getUsername(), user.getEmail()))
+                .map(user -> new UserDto(user.getId(), user.getUsername(), user.getEmail(), user.getPhoneNumber()))
                 .toList();
         return new GroupDto(group.getId(), group.getName(), group.getDescription(),
                            group.getCreatedBy().getId(), memberDtos);

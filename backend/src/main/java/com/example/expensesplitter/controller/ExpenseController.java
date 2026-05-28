@@ -4,6 +4,7 @@ import com.example.expensesplitter.dto.ExpenseDto;
 import com.example.expensesplitter.dto.ExpenseRequest;
 import com.example.expensesplitter.service.ExpenseService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,8 +27,8 @@ public class ExpenseController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ExpenseDto>> getAllExpenses() {
-        List<ExpenseDto> expenses = expenseService.getAllExpenseDtos();
+    public ResponseEntity<List<ExpenseDto>> getUserExpenses(Authentication authentication) {
+        List<ExpenseDto> expenses = expenseService.getUserExpenseDtos(authentication.getName());
         return ResponseEntity.ok(expenses);
     }
 

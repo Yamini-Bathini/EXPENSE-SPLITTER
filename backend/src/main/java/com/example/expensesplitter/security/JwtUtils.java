@@ -3,9 +3,9 @@ package com.example.expensesplitter.security;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import com.example.expensesplitter.config.JwtProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
@@ -16,11 +16,13 @@ import java.util.Date;
 public class JwtUtils {
     private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 
-    @Value("${app.jwt.secret}")
-    private String jwtSecret;
+    private final String jwtSecret;
+    private final int jwtExpirationMs;
 
-    @Value("${app.jwt.expiration-ms}")
-    private int jwtExpirationMs;
+    public JwtUtils(JwtProperties jwtProperties) {
+        this.jwtSecret = jwtProperties.getSecret();
+        this.jwtExpirationMs = jwtProperties.getExpirationMs();
+    }
 
     public String generateJwtToken(Authentication authentication) {
         UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();

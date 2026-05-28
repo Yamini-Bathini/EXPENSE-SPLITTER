@@ -9,6 +9,7 @@ export default function SignupPage() {
   const auth = useAuth();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +36,7 @@ export default function SignupPage() {
       return;
     }
     try {
-      await auth.signup(username, email, password);
+      await auth.signup(username, email, password, phone);
       navigate('/', { replace: true });
     } catch (err) {
       if (err instanceof Error) {
@@ -88,6 +89,21 @@ export default function SignupPage() {
               required
               type="email"
               value={email}
+            />
+          </div>
+          <div>
+            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300" htmlFor="phone">
+              Phone number (optional)
+            </label>
+            <Input
+              autoComplete="tel"
+              disabled={loading}
+              id="phone"
+              name="phone"
+              onChange={(event) => setPhone(event.target.value)}
+              placeholder="+1 555 123 4567"
+              type="tel"
+              value={phone}
             />
           </div>
           <div>

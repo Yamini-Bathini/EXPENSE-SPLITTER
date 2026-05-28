@@ -28,6 +28,7 @@ public class UserService {
         User user = new User();
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
+        user.setPhoneNumber(request.getPhoneNumber());
         user.setPassword(hashPassword(request.getPassword()));
         return toDto(userRepository.save(user));
     }
@@ -50,7 +51,7 @@ public class UserService {
     }
 
     public UserDto toDto(User user) {
-        return new UserDto(user.getId(), user.getUsername(), user.getEmail());
+        return new UserDto(user.getId(), user.getUsername(), user.getEmail(), user.getPhoneNumber());
     }
 
     private String hashPassword(String password) {

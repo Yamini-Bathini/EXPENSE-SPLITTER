@@ -7,9 +7,11 @@ import com.example.expensesplitter.repository.GroupRepository;
 import com.example.expensesplitter.repository.TransactionRepository;
 import com.example.expensesplitter.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class TransactionService {
@@ -24,7 +26,11 @@ public class TransactionService {
         this.userRepository = userRepository;
         this.groupRepository = groupRepository;
     }
-    @SuppressWarnings("java:S2259")    public Transaction recordTransaction(Long fromUserId, Long toUserId, BigDecimal amount, String note) {
+    @SuppressWarnings("java:S2259")
+    public Transaction recordTransaction(Long fromUserId, Long toUserId, BigDecimal amount, String note) {
+        Objects.requireNonNull(fromUserId, "From user id is required");
+        Objects.requireNonNull(toUserId, "To user id is required");
+
         User fromUser = userRepository.findById(fromUserId)
                 .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
         User toUser = userRepository.findById(toUserId)
@@ -38,10 +44,14 @@ public class TransactionService {
                 .occurredAt(java.time.OffsetDateTime.now())
                 .build();
 
-        return transactionRepository.save(transaction);
+        return transactionRepository.save(Objects.requireNonNull(transaction));
     }
 
     public Transaction recordSettlement(Long fromUserId, Long toUserId, Long groupId, BigDecimal amount) {
+        Objects.requireNonNull(fromUserId, "From user id is required");
+        Objects.requireNonNull(toUserId, "To user id is required");
+        Objects.requireNonNull(groupId, "Group id is required");
+
         User fromUser = userRepository.findById(fromUserId)
                 .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
         User toUser = userRepository.findById(toUserId)
@@ -57,11 +67,13 @@ public class TransactionService {
                 .occurredAt(java.time.OffsetDateTime.now())
                 .build();
 
-        return transactionRepository.save(transaction);
+        return transactionRepository.save(Objects.requireNonNull(transaction));
     }
 
-    public List<Transaction> getAllTransactions() {
-        return transactionRepository.findAll();
+    public List<Transaction> getUserTransactions(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
+        return transactionRepository.findByFromUserIdOrToUserId(user.getId(), user.getId());
     }
 
     public List<Transaction> getGroupTransactions(Long groupId) {
@@ -82,10 +94,12 @@ public class TransactionService {
         );
     }
 
-    public List<com.example.expensesplitter.dto.TransactionDto> getAllTransactionDtos() {
-        return getAllTransactions().stream().map(this::convertToDto).toList();
+    @Transactional(readOnly = true)
+    public List<com.example.expensesplitter.dto.TransactionDto> getUserTransactionDtos(String username) {
+        return getUserTransactions(username).stream().map(this::convertToDto).toList();
     }
 
+    @Transactional(readOnly = true)
     public List<com.example.expensesplitter.dto.TransactionDto> getGroupTransactionDtos(Long groupId) {
         return getGroupTransactions(groupId).stream().map(this::convertToDto).toList();
     }

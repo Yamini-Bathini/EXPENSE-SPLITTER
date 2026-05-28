@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Data
@@ -14,9 +15,11 @@ public class ExpenseDto {
     private String description;
     private String category;
     private BigDecimal amount;
+    private String currency;
     private SplitType splitType;
     private Long paidById;
     private String paidByName;
     private Long groupId;
     private List<SplitDto> splits;
+    private OffsetDateTime createdAt;
 }

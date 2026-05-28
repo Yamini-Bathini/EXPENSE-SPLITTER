@@ -76,10 +76,14 @@ public class DebtSimplificationService {
     private List<DebtBalance> extractCreditors(Map<Long, BigDecimal> balances) {
         List<DebtBalance> creditors = new ArrayList<>();
         for (Map.Entry<Long, BigDecimal> entry : balances.entrySet()) {
+            Long userId = entry.getKey();
+            if (userId == null) {
+                continue;
+            }
             BigDecimal balance = entry.getValue().setScale(2, RoundingMode.HALF_UP);
             if (balance.compareTo(BigDecimal.ZERO) > 0) {
-                User u = userRepository.findById(entry.getKey()).orElse(null);
-                if (u != null) creditors.add(new DebtBalance(entry.getKey(), u.getUsername(), balance));
+                User u = userRepository.findById(userId).orElse(null);
+                if (u != null) creditors.add(new DebtBalance(userId, u.getUsername(), balance));
             }
         }
         return creditors;
@@ -88,10 +92,14 @@ public class DebtSimplificationService {
     private List<DebtBalance> extractDebtors(Map<Long, BigDecimal> balances) {
         List<DebtBalance> debtors = new ArrayList<>();
         for (Map.Entry<Long, BigDecimal> entry : balances.entrySet()) {
+            Long userId = entry.getKey();
+            if (userId == null) {
+                continue;
+            }
             BigDecimal balance = entry.getValue().setScale(2, RoundingMode.HALF_UP);
             if (balance.compareTo(BigDecimal.ZERO) < 0) {
-                User u = userRepository.findById(entry.getKey()).orElse(null);
-                if (u != null) debtors.add(new DebtBalance(entry.getKey(), u.getUsername(), balance.abs()));
+                User u = userRepository.findById(userId).orElse(null);
+                if (u != null) debtors.add(new DebtBalance(userId, u.getUsername(), balance.abs()));
             }
         }
         return debtors;

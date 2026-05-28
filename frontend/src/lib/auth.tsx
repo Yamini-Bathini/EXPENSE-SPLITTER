@@ -10,7 +10,7 @@ interface AuthResponse extends User {
 interface AuthContextType {
   user: User | null;
   login: (username: string, password: string) => Promise<AuthResponse>;
-  signup: (username: string, email: string, password: string) => Promise<User>;
+  signup: (username: string, email: string, password: string, phoneNumber?: string) => Promise<User>;
   logout: () => void;
 }
 
@@ -45,8 +45,8 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     return response.data;
   };
 
-  const signup = async (username: string, email: string, password: string) => {
-    await api.post('/auth/register', { username, email, password });
+  const signup = async (username: string, email: string, password: string, phoneNumber?: string) => {
+    await api.post('/auth/register', { username, email, password, phoneNumber });
     const user = await login(username, password);
     return user;
   };

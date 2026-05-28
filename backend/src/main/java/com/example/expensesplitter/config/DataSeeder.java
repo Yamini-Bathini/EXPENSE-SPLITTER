@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Component
@@ -72,23 +73,23 @@ public class DataSeeder implements CommandLineRunner {
             allUsers.add(user2);
             allUsers.add(user3);
 
-            Group tripGroup = Group.builder()
+            Group tripGroup = Objects.requireNonNull(Group.builder()
                     .name("Miami Trip")
                     .description("Weekend getaway")
                     .createdBy(user1)
                     .members(allUsers)
-                    .build();
+                    .build());
 
             Set<User> aptUsers = new HashSet<>();
             aptUsers.add(user1);
             aptUsers.add(user2);
 
-            Group aptGroup = Group.builder()
+            Group aptGroup = Objects.requireNonNull(Group.builder()
                     .name("Apartment 4B")
                     .description("Shared living expenses")
                     .createdBy(user2)
                     .members(aptUsers)
-                    .build();
+                    .build());
 
             groupRepository.save(tripGroup);
             groupRepository.save(aptGroup);
@@ -175,7 +176,7 @@ public class DataSeeder implements CommandLineRunner {
             expenseRepository.save(groceries);
 
             // Create sample transactions
-            Transaction t1 = Transaction.builder()
+            Transaction t1 = Objects.requireNonNull(Transaction.builder()
                     .group(tripGroup)
                     .fromUser(user2)
                     .toUser(user1)
@@ -183,10 +184,10 @@ public class DataSeeder implements CommandLineRunner {
                     .note("Flight reimbursement")
                     .status(TransactionStatus.SETTLED)
                     .occurredAt(java.time.OffsetDateTime.now().minusDays(3))
-                    .build();
+                    .build());
             transactionRepository.save(t1);
 
-            Transaction t2 = Transaction.builder()
+            Transaction t2 = Objects.requireNonNull(Transaction.builder()
                     .group(tripGroup)
                     .fromUser(user3)
                     .toUser(user2)
@@ -194,7 +195,7 @@ public class DataSeeder implements CommandLineRunner {
                     .note("Hotel reimbursement")
                     .status(TransactionStatus.SETTLED)
                     .occurredAt(java.time.OffsetDateTime.now().minusDays(2))
-                    .build();
+                    .build());
             transactionRepository.save(t2);
 
             Transaction t3 = Transaction.builder()
@@ -206,7 +207,7 @@ public class DataSeeder implements CommandLineRunner {
                     .status(TransactionStatus.PENDING)
                     .occurredAt(java.time.OffsetDateTime.now())
                     .build();
-            transactionRepository.save(t3);
+            transactionRepository.save(Objects.requireNonNull(t3));
 
             // Additional data to make balances more interesting
             // Expense 6: Coffee (Miami Trip) paid by Alice, split equally
@@ -276,15 +277,15 @@ public class DataSeeder implements CommandLineRunner {
             expenseRepository.save(snacks);
 
             // Additional transactions
-            Transaction t4 = Transaction.builder()
+            Transaction t4 = Objects.requireNonNull(Transaction.builder()
                     .group(aptGroup)
                     .fromUser(user1)
                     .toUser(user0)
-                    .amount(new BigDecimal("10.00"))
+                    .amount(new BigDecimal(AMOUNT_10))
                     .note("Snack money")
                     .status(TransactionStatus.SETTLED)
                     .occurredAt(java.time.OffsetDateTime.now())
-                    .build();
+                    .build());
             transactionRepository.save(t4);
         }
     }

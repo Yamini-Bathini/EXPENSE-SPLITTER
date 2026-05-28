@@ -12,6 +12,7 @@ import lombok.Setter;
 import lombok.Builder.Default;
 
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +31,7 @@ public class Expense {
     private String description;
     private String category;
     private BigDecimal amount;
+    private String currency;
 
     @Enumerated(EnumType.STRING)
     private SplitType splitType;
@@ -47,4 +49,7 @@ public class Expense {
     @Default
     @OneToMany(mappedBy = "expense", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Split> splits = new ArrayList<>();
+
+    @Default
+    private OffsetDateTime createdAt = OffsetDateTime.now();
 }

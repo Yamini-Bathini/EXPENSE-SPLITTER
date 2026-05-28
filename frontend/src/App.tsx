@@ -2,6 +2,7 @@ import { Route, Routes, Outlet, Navigate } from 'react-router-dom';
 import { Sidebar } from './components/layout/Sidebar';
 import { Navbar } from './components/layout/Navbar';
 import { ToastProvider } from './components/ui/Toast';
+import AIChatWidget from './components/AIChatWidget';
 import DashboardPage from './pages/Dashboard';
 import GroupsPage from './pages/Groups';
 import ExpensesPage from './pages/Expenses';
@@ -33,6 +34,7 @@ function App() {
 
   return (
     <ToastProvider>
+      <AIChatWidget />
       <Routes>
         <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
         <Route path="/signup" element={user ? <Navigate to="/" replace /> : <SignupPage />} />
