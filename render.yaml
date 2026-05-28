@@ -13,23 +13,15 @@ services:
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: render
-      - key: PGHOST
+      - key: SPRING_DATASOURCE_URL
         fromDatabase:
           name: expense-splitter-db
-          property: host
-      - key: PGPORT
-        fromDatabase:
-          name: expense-splitter-db
-          property: port
-      - key: PGDATABASE
-        fromDatabase:
-          name: expense-splitter-db
-          property: database
-      - key: PGUSER
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
         fromDatabase:
           name: expense-splitter-db
           property: user
-      - key: PGPASSWORD
+      - key: SPRING_DATASOURCE_PASSWORD
         fromDatabase:
           name: expense-splitter-db
           property: password
