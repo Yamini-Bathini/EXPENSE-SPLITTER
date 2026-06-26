@@ -35,3 +35,12 @@ services:
           property: password
       - key: JWT_SECRET
         generateValue: true
+
+  - type: cronJob
+    name: keep-awake
+    runtime: docker
+    rootDir: ./backend
+    dockerfilePath: ./Dockerfile.cron
+    schedule: "*/5 * * * *"
+    plan: free
+    command: curl -sf https://expense-splitter-backend-yqdk.onrender.com/api/health
